@@ -69,7 +69,7 @@ int main(int argc, char* argv[])
   int i,j; /* Pixel counters */
   int k; /* Iteration counter */
 
-  //begin
+  #pragma omp parallel for
   for (j = 0; j < yres; j++) {
     y = ymax - j * dy;
     for(i = 0; i < xres; i++) {
