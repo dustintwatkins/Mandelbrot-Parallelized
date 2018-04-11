@@ -47,7 +47,7 @@ int main(int argc, char* argv[])
   /* Image size, width is given, height is computed. */
   const int xres = atoi(argv[6]);
   const int yres = (xres*(ymax-ymin))/(xmax-xmin);
-
+  unsigned char container[yres][xres][6];
   /* The output file name */
   const char* filename = argv[7];
 
@@ -68,6 +68,8 @@ int main(int argc, char* argv[])
   double u, v; /* Coordinates of the iterated point. */
   int i,j; /* Pixel counters */
   int k; /* Iteration counter */
+
+  //begin
   for (j = 0; j < yres; j++) {
     y = ymax - j * dy;
     for(i = 0; i < xres; i++) {
@@ -77,6 +79,7 @@ int main(int argc, char* argv[])
       double v2 = v*v;
       x = xmin + i * dx;
       /* iterate the point */
+
       for (k = 1; k < maxiter && (u2 + v2 < 4.0); k++) {
             v = 2 * u * v + y;
             u = u2 - v2 + x;
@@ -87,21 +90,52 @@ int main(int argc, char* argv[])
       if (k >= maxiter) {
         /* interior */
         const unsigned char black[] = {0, 0, 0, 0, 0, 0};
-        fwrite (black, 6, 1, fp);
+        container[j][i][0] = 0;
+        container[j][i][1] = 0;
+        container[j][i][2] = 0;
+        container[j][i][3] = 0;
+        container[j][i][4] = 0;
+        container[j][i][5] = 0;
+
+        //fwrite (black, 6, 1, fp);
       }
       else {
         /* exterior */
-        unsigned char color[6];
-        color[0] = k >> 8;
-        color[1] = k & 255;
-        color[2] = k >> 8;
-        color[3] = k & 255;
-        color[4] = k >> 8;
-        color[5] = k & 255;
-        fwrite(color, 6, 1, fp);
+
+        container[j][i][0] = k >> 8;
+        container[j][i][1] = k & 255;
+        container[j][i][2] = k >> 8;
+        container[j][i][3] = k & 255;
+        container[j][i][4] = k >> 8;
+        container[j][i][5] = k & 255;
+
+        // unsigned char color[6];
+        // color[0] = k >> 8;
+        // color[1] = k & 255;
+        // color[2] = k >> 8;
+        // color[3] = k & 255;
+        // color[4] = k >> 8;
+        // color[5] = k & 255;
+        // fwrite(color, 6, 1, fp);
       };
     }
   }
+
+
+  for(j = 0; j < yres; j++){
+    for(i = 0; i < xres; i++){
+        unsigned char color[] = {
+        container[j][i][0],
+        container[j][i][1],
+        container[j][i][2],
+        container[j][i][3],
+        container[j][i][4],
+        container[j][i][5],
+      };
+      fwrite(color, 6, 1, fp);
+    }
+  }
+  //write out
   fclose(fp);
   return 0;
 }
