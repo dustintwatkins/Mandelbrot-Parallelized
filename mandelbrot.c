@@ -47,7 +47,9 @@ int main(int argc, char* argv[])
   /* Image size, width is given, height is computed. */
   const int xres = atoi(argv[6]);
   const int yres = (xres*(ymax-ymin))/(xmax-xmin);
-  unsigned char container[yres][xres][6];
+
+  unsigned char*** container = malloc(sizeof(char**) * yres);
+
   /* The output file name */
   const char* filename = argv[7];
 
@@ -69,7 +71,14 @@ int main(int argc, char* argv[])
   int i,j; /* Pixel counters */
   int k; /* Iteration counter */
 
-  #pragma omp parallel for
+  for(i = 0; i < yres; i++){
+    container[i] = malloc(xres * sizeof(char*));
+    for(j = 0; j < xres; j++){
+      container[i][j] = malloc(6 * sizeof(char));
+    }
+  }
+
+  //#pragma omp parallel for private(j,i,k,x,y)
   for (j = 0; j < yres; j++) {
     y = ymax - j * dy;
     for(i = 0; i < xres; i++) {
@@ -79,7 +88,6 @@ int main(int argc, char* argv[])
       double v2 = v*v;
       x = xmin + i * dx;
       /* iterate the point */
-
       for (k = 1; k < maxiter && (u2 + v2 < 4.0); k++) {
             v = 2 * u * v + y;
             u = u2 - v2 + x;
@@ -89,19 +97,19 @@ int main(int argc, char* argv[])
       /* compute  pixel color and write it to file */
       if (k >= maxiter) {
         /* interior */
-        const unsigned char black[] = {0, 0, 0, 0, 0, 0};
+        //const unsigned char black[] = {0, 0, 0, 0, 0, 0};
         container[j][i][0] = 0;
         container[j][i][1] = 0;
         container[j][i][2] = 0;
         container[j][i][3] = 0;
         container[j][i][4] = 0;
         container[j][i][5] = 0;
-
         //fwrite (black, 6, 1, fp);
       }
       else {
         /* exterior */
 
+        unsigned char color[6];
         container[j][i][0] = k >> 8;
         container[j][i][1] = k & 255;
         container[j][i][2] = k >> 8;
@@ -109,18 +117,10 @@ int main(int argc, char* argv[])
         container[j][i][4] = k >> 8;
         container[j][i][5] = k & 255;
 
-        // unsigned char color[6];
-        // color[0] = k >> 8;
-        // color[1] = k & 255;
-        // color[2] = k >> 8;
-        // color[3] = k & 255;
-        // color[4] = k >> 8;
-        // color[5] = k & 255;
         // fwrite(color, 6, 1, fp);
       };
     }
   }
-
 
   for(j = 0; j < yres; j++){
     for(i = 0; i < xres; i++){
