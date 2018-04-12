@@ -25,9 +25,13 @@
 #include <stdlib.h>
 #include <math.h>
 #include <stdint.h>
+#include <time.h>
 
 int main(int argc, char* argv[])
 {
+  clock_t start, end;
+  double cpu_time_used;
+  start = clock();
   /* Parse the command line arguments. */
   if (argc != 8) {
     printf("Usage:   %s <xmin> <xmax> <ymin> <ymax> <maxiter> <xres> <out.ppm>\n", argv[0]);
@@ -78,7 +82,7 @@ int main(int argc, char* argv[])
     }
   }
 
-  //#pragma omp parallel for private(j,i,k,x,y)
+  #pragma omp parallel for private(j,i,k,x,y) num_threads(1)
   for (j = 0; j < yres; j++) {
     y = ymax - j * dy;
     for(i = 0; i < xres; i++) {
@@ -137,5 +141,8 @@ int main(int argc, char* argv[])
   }
   //write out
   fclose(fp);
+  end = clock();
+  cpu_time_used = ((double) (end-start) / CLOCKS_PER_SEC);
+  printf("%lf\n", cpu_time_used);
   return 0;
 }
